@@ -1,0 +1,551 @@
+﻿@page "/demo"
+@using AIHelperLibrary.Models
+@using AIHelperDemo.Services
+@using AIHelperDemo.Services.Interfaces
+@inject DemoAiService DemoService
+@inject ISessionService SessionService
+@rendermode InteractiveServer
+
+<PageTitle>AI Helper Demo</PageTitle>
+
+<!-- Hero Section with Demo -->
+<div class="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800 relative overflow-hidden">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-white opacity-5 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-300 opacity-5 rounded-full blur-3xl animate-bounce" style="animation-duration: 3s;"></div>
+        <div class="absolute top-1/4 right-1/4 w-64 h-64 bg-purple-300 opacity-5 rounded-full blur-2xl animate-ping" style="animation-duration: 4s;"></div>
+    </div>
+
+    <!-- Simple Navigation -->
+    <nav class="absolute top-0 left-0 right-0 z-20 p-6">
+        <div class="flex justify-between items-center">
+            <a href="/" class="bg-white/10 backdrop-blur text-white px-4 py-2 rounded-lg hover:bg-white/20 transition-colors">
+                Back Home →
+            </a>
+        </div>
+    </nav>
+    
+    <div class="relative z-10 min-h-screen p-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-5xl md:text-6xl font-bold text-white mb-4">
+                    Try AI Helper Library
+                </h1>
+                <p class="text-xl text-blue-100 mb-8">
+                    Test the power of unified AI APIs in real-time
+                </p>
+                <div class="w-32 h-1 bg-gradient-to-r from-blue-400 to-purple-400 mx-auto rounded-full"></div>
+            </div>
+
+            <!-- API Key Mode Toggle -->
+            <div class="flex justify-center mb-8">
+                <div class="bg-white/10 backdrop-blur-lg rounded-xl p-2 border border-white/20">
+                    <div class="flex gap-2">
+                        <button @onclick="() => SetApiKeyMode(false)"
+                                class="@GetModeButtonClass(false) transition-all duration-300">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                            Demo Mode
+                        </button>
+                        <button @onclick="() => SetApiKeyMode(true)"
+                                class="@GetModeButtonClass(true) transition-all duration-300">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m0 0a2 2 0 012 2m-2-2a2 2 0 00-2 2m2-2V5a2 2 0 00-2-2m0 0V3"/>
+                            </svg>
+                            Your API Keys
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Demo Interface -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Configuration Panel -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 border border-white/20 shadow-2xl">
+                        <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                            </svg>
+                            Configuration
+                        </h2>
+
+                        <div class="space-y-6">
+                            <!-- API Key Configuration -->
+                            @if (GetUseOwnApiKeys())
+                            {
+                                <div class="space-y-4">
+                                    <div class="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+                                        <div class="flex items-center gap-2 text-green-300 text-sm font-medium mb-2">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Your API Keys • Unlimited Usage
+                                        </div>
+                                    </div>
+
+                                    <!-- OpenAI API Key -->
+                                    <div>
+                                        <label class="block text-white font-medium mb-2">OpenAI API Key</label>
+                                        <div class="relative">
+                                            <input type="@(_showOpenAiKey ? "text" : "password")"
+                                                   value="@GetOpenAiApiKey()"
+                                                   @onchange="@((ChangeEventArgs e) => SetOpenAiApiKey(e.Value?.ToString() ?? ""))"
+                                                   placeholder="sk-..."
+                                                   class="w-full p-3 pr-10 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/40 transition-colors text-sm font-mono">
+                                            <button type="button" @onclick="() => _showOpenAiKey = !_showOpenAiKey"
+                                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white">
+                                                @if (_showOpenAiKey)
+                                                {
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
+                                                    </svg>
+                                                }
+                                                else
+                                                {
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                    </svg>
+                                                }
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Anthropic API Key -->
+                                    <div>
+                                        <label class="block text-white font-medium mb-2">Anthropic API Key</label>
+                                        <div class="relative">
+                                            <input type="@(_showAnthropicKey ? "text" : "password")"
+                                                   value="@GetAnthropicApiKey()"
+                                                   @onchange="@((ChangeEventArgs e) => SetAnthropicApiKey(e.Value?.ToString() ?? ""))"
+                                                   placeholder="sk-ant-..."
+                                                   class="w-full p-3 pr-10 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:border-white/40 transition-colors text-sm font-mono">
+                                            <button type="button" @onclick="() => _showAnthropicKey = !_showAnthropicKey"
+                                                    class="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white">
+                                                @if (_showAnthropicKey)
+                                                {
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"/>
+                                                    </svg>
+                                                }
+                                                else
+                                                {
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                                    </svg>
+                                                }
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Demo Mode Info -->
+                                <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                                    <div class="flex items-center gap-2 text-yellow-300 text-sm font-medium mb-2">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        </svg>
+                                        Demo Mode • @(GetDemoRequestsRemaining()) requests remaining
+                                    </div>
+                                    <p class="text-yellow-200 text-xs">Using demo API keys. Switch to "Your API Keys" for unlimited usage.</p>
+                                </div>
+                            }
+
+                            <!-- Provider Selection -->
+                            <div>
+                                <label class="block text-white font-medium mb-3">AI Provider</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button @onclick="() => _selectedProvider = AIProvider.OpenAI"
+                                            disabled="@(GetUseOwnApiKeys() && string.IsNullOrWhiteSpace(GetOpenAiApiKey()))"
+                                            class="@GetProviderButtonClass(AIProvider.OpenAI) transition-all duration-300">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 @(GetUseOwnApiKeys() && string.IsNullOrWhiteSpace(GetOpenAiApiKey()) ? "bg-gray-400" : "bg-green-400") rounded-full"></div>
+                                            OpenAI
+                                        </div>
+                                    </button>
+                                    <button @onclick="() => _selectedProvider = AIProvider.Anthropic"
+                                            disabled="@(GetUseOwnApiKeys() && string.IsNullOrWhiteSpace(GetAnthropicApiKey()))"
+                                            class="@GetProviderButtonClass(AIProvider.Anthropic) transition-all duration-300">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-3 h-3 @(GetUseOwnApiKeys() && string.IsNullOrWhiteSpace(GetAnthropicApiKey()) ? "bg-gray-400" : "bg-orange-400") rounded-full"></div>
+                                            Claude
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Model Selection -->
+                            <div>
+                                <label class="block text-white font-medium mb-3">
+                                    @if (GetUseOwnApiKeys())
+                                    {
+                                        <span>Model Selection</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Current Model (Demo)</span>
+                                    }
+                                </label>
+
+                                @if (GetUseOwnApiKeys())
+                                {
+                                    <!-- Editable Model Selection -->
+                                    <div class="space-y-3">
+                                        @if (_selectedProvider == AIProvider.OpenAI)
+                                        {
+                                            <select @bind="_selectedOpenAIModel"
+                                                    class="w-full p-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/40 transition-colors">
+                                                <option value="@OpenAIModel.GPT_3_5_Turbo">GPT-3.5 Turbo (Fast & Affordable)</option>
+                                                <option value="@OpenAIModel.GPT_4">GPT-4 (Most Capable)</option>
+                                                <option value="@OpenAIModel.GPT_4_Turbo">GPT-4 Turbo (Balanced)</option>
+                                                <option value="@OpenAIModel.GPT_4o">GPT-4o (Optimized)</option>
+                                                <option value="@OpenAIModel.GPT_4o_Mini">GPT-4o Mini (Fast)</option>
+                                                <option value="@OpenAIModel.O1_Mini">O1 Mini (Reasoning)</option>
+                                                <option value="@OpenAIModel.O3_Mini">O3 Mini (Latest Reasoning)</option>
+                                            </select>
+                                        }
+                                        else
+                                        {
+                                            <select @bind="_selectedAnthropicModel"
+                                                    class="w-full p-3 bg-white/5 border border-white/20 rounded-lg text-white focus:outline-none focus:border-white/40 transition-colors">
+                                                <option value="@AnthropicModel.Claude3Haiku">Claude 3 Haiku (Fastest)</option>
+                                                <option value="@AnthropicModel.Claude3Sonnet">Claude 3 Sonnet (Balanced)</option>
+                                                <option value="@AnthropicModel.Claude3Opus">Claude 3 Opus (Most Capable)</option>
+                                                <option value="@AnthropicModel.Claude3_5_Sonnet">Claude 3.5 Sonnet (Latest)</option>
+                                                <option value="@AnthropicModel.Claude3_7_Sonnet">Claude 3.7 Sonnet (Newest)</option>
+                                            </select>
+                                        }
+
+                                        <div class="text-xs text-blue-200">
+                                            @if (_selectedProvider == AIProvider.OpenAI)
+                                            {
+                                                <span>@GetModelDescription(_selectedOpenAIModel)</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@GetModelDescription(_selectedAnthropicModel)</span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <!-- Read-only Model Display -->
+                                    <div class="bg-white/5 rounded-lg p-3 border border-white/10">
+                                        <div class="text-white font-medium">
+                                            @if (_selectedProvider == AIProvider.OpenAI)
+                                            {
+                                                <span>GPT-3.5 Turbo</span>
+                                            }
+                                            else
+                                            {
+                                                <span>Claude 3 Haiku</span>
+                                            }
+                                        </div>
+                                        <div class="text-xs text-blue-200 mt-1">
+                                            Optimized for demo usage • Fast responses
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Advanced Configuration -->
+                            <div>
+                                <button @onclick="() => _showAdvanced = !_showAdvanced"
+                                        class="flex items-center justify-between w-full text-white font-medium mb-3 hover:text-blue-200 transition-colors">
+                                    <span>@(GetUseOwnApiKeys() ? "Advanced Settings" : "View Configuration")</span>
+                                    <svg class="w-4 h-4 transform transition-transform @(_showAdvanced ? "rotate-180" : "")" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                </button>
+
+                                @if (_showAdvanced)
+                                {
+                                    <div class="space-y-4 bg-white/5 rounded-lg p-4 border border-white/10">
+                                        <!-- Max Tokens -->
+                                        <div>
+                                            <label class="block text-white text-sm font-medium mb-2">
+                                                Max Tokens: @(GetUseOwnApiKeys() ? _maxTokens : 150)
+                                                @if (!GetUseOwnApiKeys())
+                                                {
+                                                    <span class="text-blue-300 ml-1">(Demo)</span>
+                                                }
+                                            </label>
+                                            @if (GetUseOwnApiKeys())
+                                            {
+                                                <input type="range" @bind="_maxTokens" min="50" max="2000" step="50"
+                                                       class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer">
+                                                <div class="flex justify-between text-xs text-white/60 mt-1">
+                                                    <span>50</span>
+                                                    <span>2000</span>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="w-full h-2 bg-white/20 rounded-lg relative">
+                                                    <div class="absolute left-0 top-0 h-full bg-blue-400 rounded-lg" style="width: 7.5%"></div>
+                                                </div>
+                                                <div class="flex justify-between text-xs text-white/60 mt-1">
+                                                    <span>50</span>
+                                                    <span class="text-blue-300">150 (Demo)</span>
+                                                    <span>2000</span>
+                                                </div>
+                                            }
+                                            <p class="text-xs text-white/60 mt-1">Controls response length</p>
+                                        </div>
+
+                                        <!-- Temperature -->
+                                        <div>
+                                            <label class="block text-white text-sm font-medium mb-2">
+                                                Temperature: @(GetUseOwnApiKeys() ? _temperature.ToString("F1") : "0.7")
+                                                @if (!GetUseOwnApiKeys())
+                                                {
+                                                    <span class="text-blue-300 ml-1">(Demo)</span>
+                                                }
+                                            </label>
+                                            @if (GetUseOwnApiKeys())
+                                            {
+                                                <input type="range" @bind="_temperature" min="0" max="1" step="0.1"
+                                                       class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer">
+                                                <div class="flex justify-between text-xs text-white/60 mt-1">
+                                                    <span>0.0 (Focused)</span>
+                                                    <span>1.0 (Creative)</span>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="w-full h-2 bg-white/20 rounded-lg relative">
+                                                    <div class="absolute left-0 top-0 h-full bg-purple-400 rounded-lg" style="width: 70%"></div>
+                                                </div>
+                                                <div class="flex justify-between text-xs text-white/60 mt-1">
+                                                    <span>0.0 (Focused)</span>
+                                                    <span class="text-purple-300">0.7 (Demo)</span>
+                                                    <span>1.0 (Creative)</span>
+                                                </div>
+                                            }
+                                            <p class="text-xs text-white/60 mt-1">Controls creativity vs consistency</p>
+                                        </div>
+
+                                        @if (GetUseOwnApiKeys())
+                                        {
+                                            <!-- Top P (Only for own keys) -->
+                                            <div>
+                                                <label class="block text-white text-sm font-medium mb-2">Top P: @_topP.ToString("F1")</label>
+                                                <input type="range" @bind="_topP" min="0.1" max="1.0" step="0.1"
+                                                       class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer">
+                                                <div class="flex justify-between text-xs text-white/60 mt-1">
+                                                    <span>0.1 (Narrow)</span>
+                                                    <span>1.0 (Diverse)</span>
+                                                </div>
+                                                <p class="text-xs text-white/60 mt-1">Alternative to temperature for controlling randomness</p>
+                                            </div>
+
+                                            <!-- Retry Settings -->
+                                            <div>
+                                                <label class="block text-white text-sm font-medium mb-2">Max Retries: @_maxRetries</label>
+                                                <input type="range" @bind="_maxRetries" min="1" max="5" step="1"
+                                                       class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer">
+                                                <div class="flex justify-between text-xs text-white/60 mt-1">
+                                                    <span>1</span>
+                                                    <span>5</span>
+                                                </div>
+                                                <p class="text-xs text-white/60 mt-1">Number of retry attempts on failure</p>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <!-- Demo Configuration Display -->
+                                            <div class="border-t border-white/10 pt-4">
+                                                <h4 class="text-white text-sm font-medium mb-2">Demo Configuration</h4>
+                                                <div class="space-y-2 text-xs text-white/60">
+                                                    <div class="flex justify-between">
+                                                        <span>Top P:</span>
+                                                        <span class="text-blue-300">1.0 (Default)</span>
+                                                    </div>
+                                                    <div class="flex justify-between">
+                                                        <span>Max Retries:</span>
+                                                        <span class="text-blue-300">3 (Standard)</span>
+                                                    </div>
+                                                    <div class="flex justify-between">
+                                                        <span>Timeout:</span>
+                                                        <span class="text-blue-300">15s</span>
+                                                    </div>
+                                                </div>
+                                                <p class="text-xs text-blue-200 mt-2">
+                                                    💡 Switch to "Your API Keys" to customize these settings
+                                                </p>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Model Info -->
+                            <div class="bg-white/5 rounded-lg p-4 border border-white/10">
+                                <div class="text-sm text-blue-200 mb-1">Active Configuration</div>
+                                <div class="text-white font-medium">
+                                    @GetCurrentModelName()
+                                </div>
+                                <div class="text-xs text-blue-300 mt-1">
+                                    @if (GetUseOwnApiKeys())
+                                    {
+                                        <span>Your API Key • Custom Settings • Unlimited</span>
+                                    }
+                                    else
+                                    {
+                                        <span>Demo Mode • @(GetDemoRequestsRemaining()) requests left</span>
+                                    }
+                                </div>
+                                @if (GetUseOwnApiKeys())
+                                {
+                                    <div class="text-xs text-white/60 mt-2">
+                                        Tokens: @_maxTokens • Temp: @_temperature.ToString("F1") • Retries: @_maxRetries
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Quick Templates -->
+                            <div>
+                                <label class="block text-white font-medium mb-3">Quick Prompts</label>
+                                <div class="space-y-2">
+                                    <button @onclick="SetQuantumPrompt"
+                                            class="w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-lg text-white text-sm transition-colors border border-white/10">
+                                        🔬 Explain quantum computing
+                                    </button>
+                                    <button @onclick="SetHaikuPrompt"
+                                            class="w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-lg text-white text-sm transition-colors border border-white/10">
+                                        🎨 Write a programming haiku
+                                    </button>
+                                    <button @onclick="SetCodePrompt"
+                                            class="w-full text-left p-3 bg-white/5 hover:bg-white/10 rounded-lg text-white text-sm transition-colors border border-white/10">
+                                        💻 Generate code example
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Interface -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white/10 backdrop-blur-lg rounded-2xl border border-white/20 shadow-2xl h-full flex flex-col">
+                        <!-- Header -->
+                        <div class="p-6 border-b border-white/20">
+                            <h2 class="text-2xl font-bold text-white flex items-center gap-3">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                                AI Assistant
+                            </h2>
+                            <p class="text-blue-200 text-sm mt-1">
+                                Powered by @(_selectedProvider == AIProvider.OpenAI ? "OpenAI GPT" : "Anthropic Claude")
+                                @if (GetUseOwnApiKeys())
+                                {
+                                    <span class="text-green-300"> • Your API Key</span>
+                                }
+                                else
+                                {
+                                    <span class="text-yellow-300"> • Demo Mode (@(GetDemoRequestsRemaining()) left)</span>
+                                }
+                            </p>
+                        </div>
+
+                        <!-- Response Area -->
+                        <div class="flex-1 p-6">
+                            @if (!string.IsNullOrEmpty(_response))
+                            {
+                                <div class="bg-white/5 rounded-xl p-6 border border-white/10 mb-6">
+                                    <div class="flex items-start gap-3">
+                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                            </svg>
+                                        </div>
+                                        <div class="flex-1">
+                                            <div class="text-white leading-relaxed whitespace-pre-wrap">@_response</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(_errorMessage))
+                            {
+                                <div class="bg-red-500/10 border border-red-500/20 rounded-xl p-6 mb-6">
+                                    <div class="flex items-start gap-3">
+                                        <svg class="w-6 h-6 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                                        </svg>
+                                        <div>
+                                            <h4 class="text-red-300 font-medium mb-1">Error</h4>
+                                            <p class="text-red-200 text-sm">@_errorMessage</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            @if (string.IsNullOrEmpty(_response) && string.IsNullOrEmpty(_errorMessage) && !_isLoading)
+                            {
+                                <div class="text-center py-12">
+                                    <svg class="w-16 h-16 text-white/30 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                    </svg>
+                                    <p class="text-white/60">Enter a prompt below to get started</p>
+                                    @if (!GetUseOwnApiKeys())
+                                    {
+                                        <p class="text-blue-300 text-sm mt-2">Try the quick prompts or switch to your API keys for unlimited usage</p>
+                                    }
+                                </div>
+                            }
+
+                            @if (_isLoading)
+                            {
+                                <div class="text-center py-12">
+                                    <div class="inline-flex items-center gap-3 text-white">
+                                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                                        <span>Generating response...</span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Input Area -->
+                        <div class="p-6 border-t border-white/20">
+                            <div class="flex gap-4">
+                                <div class="flex-1">
+                                    <textarea @bind="_prompt"
+                                              placeholder="Ask me anything... (e.g., 'Explain machine learning')"
+                                              class="w-full p-4 bg-white/5 border border-white/20 rounded-xl text-white placeholder-white/50 resize-none focus:outline-none focus:border-white/40 transition-colors"
+                                              rows="3"></textarea>
+                                </div>
+                                <button @onclick="GenerateResponse"
+                                        disabled="@(GetGenerateButtonDisabled())"
+                                        class="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium rounded-xl hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 shadow-lg">
+                                    @if (_isLoading)
+                                    {
+                                        <svg class="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                        </svg>
+                                    }
+                                    else
+                                    {
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                        </svg>
+                                    }
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
