@@ -1,6 +1,6 @@
 # 🧠 AI Helper Demo
 
-This is the official live demo for [AIHelperLibrary](https://github.com/NathanSanchezDev/AIHelperLibrary) — a lightweight .NET library that simplifies AI integration across multiple providers (OpenAI, Anthropic, etc.).
+This is the official live demo for [AIHelperLibrary](https://github.com/NathanSanchezDev/ai-helper-libary) — a lightweight .NET library that simplifies AI integration across multiple providers (OpenAI, Anthropic, etc.).
 
 🔗 **Live Demo**: [https://aihelper.nathanswe.com](https://aihelper.nathanswe.com)
 
